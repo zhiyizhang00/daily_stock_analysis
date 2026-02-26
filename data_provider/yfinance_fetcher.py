@@ -150,6 +150,12 @@ class YfinanceFetcher(BaseFetcher):
             if df.empty:
                 raise DataFetchError(f"Yahoo Finance 未查询到 {stock_code} 的数据")
             
+            # yfinance >= 0.2.x 对单个 ticker 也返回 MultiIndex 列（第二级为 ticker 名）
+            # 需要将列名展平为单级，否则后续列名映射会失败
+            if isinstance(df.columns, pd.MultiIndex):
+                logger.debug(f"yfinance 返回 MultiIndex 列，展平处理: {list(df.columns)}")
+                df.columns = df.columns.get_level_values(0)
+            
             return df
             
         except Exception as e:
